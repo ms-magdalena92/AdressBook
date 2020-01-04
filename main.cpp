@@ -5,209 +5,256 @@
 #include <conio.h>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 
 using namespace std;
 
 struct Kontakt
 {
-    int id;
+    int idAdresata, idUzytkownika;
     string imie, nazwisko, nrTel, adres, email;
 };
-int odczytajKontaktyZPlikuTekstowego (vector<Kontakt> &kontakty);
-int dodajKontakt (vector<Kontakt> &kontakty, int &iloscKontaktow);
-void wyszukajPoImieniu(vector<Kontakt> kontakty, int iloscKontaktow);
-void wyszukajPoNazwisku(vector<Kontakt> kontakty, int iloscKontaktow);
-void wyswietlWszystkieKontakty(vector<Kontakt> kontakty, int iloscKontaktow);
-void usunKontakt(vector<Kontakt> &kontakty, int &iloscKontaktow);
-void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow);
+
+struct Uzytkownik
+{
+    int idUzytkownika;
+    string nazwa, haslo;
+};
+
+int odczytajUzytkownikowZPlikuTxt (vector<Uzytkownik> &uzytkownicy);
+int rejestracja (vector<Uzytkownik> &uzytkownicy, int iloscUzytkownikow);
+int logowanie (vector<Uzytkownik> &uzytkownicy, int iloscUzytkownikow);
+void przejdzDoKsiazkiAdresowej(vector <Uzytkownik> &uzytkownicy, int &iloscUzytkownikow, int idZalogowanegoUzytkownika);
 
 int main()
 {
-    vector<Kontakt> kontakty;
+    vector <Uzytkownik> uzytkownicy;
+    int idZalogowanegoUzytkownika = 0;
+    int iloscUzytkownikow = odczytajUzytkownikowZPlikuTxt (uzytkownicy);
     char wybor;
-
-    int iloscKontaktow = odczytajKontaktyZPlikuTekstowego(kontakty);
 
     while (1)
     {
         system ("cls");
-        cout << "KSIAZKA ADRESOWA" << endl << endl;
-        cout << "1. Dodaj nowy kontakt" << endl;
-        cout << "2. Wyszukaj po imieniu" << endl;
-        cout << "3. Wyszukaj po nazwisku" << endl;
-        cout << "4. Wyswietl wszystkie kontakty" << endl;
-        cout << "5. Usun kontakt" << endl;
-        cout << "6. Edytuj kontakt" << endl;
-        cout << "9. Zakoncz program" << endl;
+        cout << "1. Rejestracja" << endl;
+        cout << "2. Logowanie" << endl;
+        cout << "3. Zakoncz program" << endl;
         cout << "Twoj wybor: ";
-        //cout << "Ilosc kontaktow: " << iloscKontaktow << " " << "Ilosc el wektora: " << kontakty.size() <<  endl;
         cin >> wybor;
 
-        if (!(wybor == '1' || wybor == '9') &&  iloscKontaktow==0)
+        if (wybor == '1')
         {
-            cout << endl << "Ksiazka adresowa jest pusta! Dodaj kontakty." << endl;
-            Sleep (3000);
+            iloscUzytkownikow = rejestracja(uzytkownicy, iloscUzytkownikow);
         }
-        else if (wybor == '1')
-        {
-            system ("cls");
-            dodajKontakt(kontakty, iloscKontaktow);
-        }
-
         else if (wybor == '2')
         {
-            system ("cls");
-            wyszukajPoImieniu(kontakty, iloscKontaktow);
+            idZalogowanegoUzytkownika = logowanie(uzytkownicy,iloscUzytkownikow);
+            if (idZalogowanegoUzytkownika != 0)
+            {
+                przejdzDoKsiazkiAdresowej(uzytkownicy,iloscUzytkownikow,idZalogowanegoUzytkownika);
+            }
         }
-
         else if (wybor == '3')
-        {
-            system ("cls");
-            wyszukajPoNazwisku(kontakty, iloscKontaktow);
-        }
-        else if (wybor== '4')
-        {
-            system ("cls");
-            wyswietlWszystkieKontakty(kontakty, iloscKontaktow);
-        }
-        else if (wybor== '5')
-        {
-            system ("cls");
-            usunKontakt(kontakty, iloscKontaktow);
-        }
-        else if (wybor == '6')
-        {
-            system ("cls");
-            edytujKontakt(kontakty, iloscKontaktow);
-        }
-        else if (wybor == '9')
             exit(0);
     }
     return 0;
 }
 
-int odczytajKontaktyZPlikuTekstowego (vector<Kontakt> &kontakty)
+int odczytajUzytkownikowZPlikuTxt (vector<Uzytkownik> &uzytkownicy)
 {
     fstream plik;
-    plik.open("ksiazkaAdresowa.txt", ios::in);
-
-    if (plik.good() == false)
+    plik.open("Uzytkownicy.txt", ios::in);
+    if (plik.good()==0)
     {
-        cout << "Ksiazka adresowa jest pusta!" << endl << "Dodaj plik \"ksiazkaAdresowa.txt\" lub dodaj nowe kontakty."<<endl;
-        Sleep (4000);
         return 0;
     }
-    string linia;
-    int iloscKontaktow=0;
-
+    string dane;
+    int iloscUzytkownikow = 0;
     while (!plik.eof())
     {
-        getline(plik,linia,'|');
-        if (linia != "")
+        getline(plik,dane,'|');
+        if (dane != "")
         {
-            kontakty.push_back(Kontakt());
-            kontakty[iloscKontaktow].id = atoi(linia.c_str());
-            getline(plik,linia,'|');
-            kontakty[iloscKontaktow].imie = linia;
-            getline(plik,linia,'|');
-            kontakty[iloscKontaktow].nazwisko = linia;
-            getline(plik,linia,'|');
-            kontakty[iloscKontaktow].nrTel = linia;
-            getline(plik,linia,'|');
-            kontakty[iloscKontaktow].adres = linia;
-            getline(plik,linia);
-            kontakty[iloscKontaktow].email = linia;
-            iloscKontaktow++;
+            uzytkownicy.push_back(Uzytkownik());
+            uzytkownicy[iloscUzytkownikow].idUzytkownika = atoi(dane.c_str());
+            getline(plik,dane,'|');
+            uzytkownicy[iloscUzytkownikow].nazwa = dane;
+            getline(plik,dane);
+            uzytkownicy[iloscUzytkownikow].haslo = dane;
+            iloscUzytkownikow++;
         }
     }
     plik.close();
-    return iloscKontaktow;
+    return iloscUzytkownikow;
 }
 
-void dopiszKontaktDoPlikuTxt (vector<Kontakt> &kontakty, int iloscKontaktow)
+void dopiszUzytkownikaDoPlikuTxt (vector<Uzytkownik> uzytkownicy, int iloscUzytkownikow)
 {
     fstream plik;
-    plik.open("ksiazkaAdresowa.txt", ios::out | ios::app);
+    plik.open("Uzytkownicy.txt", ios::out | ios::app);
 
-    if (iloscKontaktow == 0)
+    if (iloscUzytkownikow == 0)
     {
-        plik << kontakty[iloscKontaktow].id << "|";
+        plik << uzytkownicy[iloscUzytkownikow].idUzytkownika << "|";
     }
     else
-        plik << endl << kontakty[iloscKontaktow].id << "|";
-    plik << kontakty[iloscKontaktow].imie << "|";
-    plik << kontakty[iloscKontaktow].nazwisko << "|";
-    plik << kontakty[iloscKontaktow].nrTel << "|";
-    plik << kontakty[iloscKontaktow].adres << "|";
-    plik << kontakty[iloscKontaktow].email;
+    {
+        plik << endl << uzytkownicy[iloscUzytkownikow].idUzytkownika << "|";
+    }
+    plik << uzytkownicy[iloscUzytkownikow].nazwa << "|";
+    plik << uzytkownicy[iloscUzytkownikow].haslo;
     plik.close();
 }
 
-void nadpiszPlikTxt (vector<Kontakt> &kontakty, int iloscKontaktow)
+int rejestracja (vector<Uzytkownik> &uzytkownicy, int iloscUzytkownikow)
+{
+    string nazwa, haslo;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> nazwa;
+    vector<Uzytkownik>::iterator itr = uzytkownicy.begin();
+    while (itr != uzytkownicy.end())
+    {
+        if (itr -> nazwa == nazwa)
+        {
+            cout << "Uzytkownik o takiej nazwie juz istnieje. Wpisz inna nazwe uzytkownika: ";
+            cin >> nazwa;
+            itr = uzytkownicy.begin();  // chcemy przeszukac wektor od poczatku
+        }
+        else
+            itr++;
+    }
+    cout << "Podaj haslo: ";
+    cin >> haslo;
+    uzytkownicy.push_back(Uzytkownik());
+    uzytkownicy[iloscUzytkownikow].nazwa = nazwa;
+    uzytkownicy[iloscUzytkownikow].haslo = haslo;
+    uzytkownicy[iloscUzytkownikow].idUzytkownika = iloscUzytkownikow+1;
+    cout << "Konto zostalo utworzone" << endl;
+    Sleep(1000);
+    dopiszUzytkownikaDoPlikuTxt (uzytkownicy, iloscUzytkownikow);
+    return ++iloscUzytkownikow;
+}
+
+int logowanie (vector<Uzytkownik> &uzytkownicy, int iloscUzytkownikow)
+{
+    string nazwa, haslo;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> nazwa;
+
+    vector<Uzytkownik>::iterator itr = uzytkownicy.begin();
+    while (itr != uzytkownicy.end())
+    {
+        if (itr -> nazwa == nazwa)
+        {
+            for (int j=0; j<3; j++)
+            {
+                cout << "Podaj haslo (pozostalo " << 3-j << " prob): ";
+                cin >> haslo;
+                if (itr -> haslo==haslo)
+                {
+                    cout << "Zalogowales sie." << endl;
+                    Sleep (1000);
+                    return itr -> idUzytkownika;
+                }
+            }
+            cout << "Podales bledne haslo. Poczekaj 3 sekundy przed kolejna proba." << endl;
+            Sleep (3000);
+            return 0;
+        }
+        itr++;
+    }
+    cout << "Nie ma uzytkownika o takiej nazwie" << endl;
+    Sleep (1500);
+    return 0;
+}
+
+void nadpiszPlikTxtUzytkownicy (vector<Uzytkownik> uzytkownicy)
 {
     fstream plik;
-    plik.open("ksiazkaAdresowa.txt", ios::out);
-    for (int i = 0; i < iloscKontaktow; i++)
+    plik.open("Uzytkownicy.txt", ios::out);
+    for (int i = 0; i < uzytkownicy.size(); i++)
     {
         if (i == 0)
         {
-            plik << kontakty[i].id << "|";
+            plik << uzytkownicy[i].idUzytkownika << "|";
         }
         else
         {
-            plik << endl << kontakty[i].id << "|";
+            plik << endl << uzytkownicy[i].idUzytkownika << "|";
         }
-        plik << kontakty[i].imie << "|";
-        plik << kontakty[i].nazwisko << "|";
-        plik << kontakty[i].nrTel << "|";
-        plik << kontakty[i].adres << "|";
-        plik << kontakty[i].email;
+        plik << uzytkownicy[i].nazwa << "|";
+        plik << uzytkownicy[i].haslo;
     }
     plik.close();
 }
 
-int dodajKontakt (vector<Kontakt> &kontakty, int &iloscKontaktow)
+void zmienHaslo (vector<Uzytkownik> &uzytkownicy, int iloscUzytkownikow, int idZalogowanegoUzytkownika)
 {
-    string imie, nazwisko, nrTel, adres, email;
-    cout << "Podaj imie: ";
-    cin >> imie;
-    cout << "Podaj nazwisko: ";
-    cin >> nazwisko;
-    cout << "Podaj nr telefonu: ";
-    cin.sync();
-    getline(cin,nrTel);
-    cout << "Podaj adres: ";
-    cin.sync();
-    getline(cin,adres);
-    cout << "Podaj adres e-mail: ";
-    cin >> email;
-
-    kontakty.push_back(Kontakt());
-    if (iloscKontaktow == 0)
+    string haslo;
+    cout << "Podaj nowe haslo: ";
+    cin >> haslo;
+    for (int i=0; i<iloscUzytkownikow; i++)
     {
-        kontakty[iloscKontaktow].id = 1;
+        if (uzytkownicy[i].idUzytkownika == idZalogowanegoUzytkownika)
+        {
+            uzytkownicy[i].haslo=haslo;
+            nadpiszPlikTxtUzytkownicy(uzytkownicy);
+            cout << "Haslo zostalo zmienione." << endl;
+            Sleep (1500);
+        }
     }
-    else
+}
+
+string zamienPierwszaLitereNaDuzaPozostaleNaMale(string tekst)
+{
+    if (!tekst.empty())
     {
-        kontakty[iloscKontaktow].id=kontakty[iloscKontaktow-1].id+1;
+        transform(tekst.begin(), tekst.end(), tekst.begin(), ::tolower);
+        tekst[0] = toupper(tekst[0]);
     }
-    kontakty[iloscKontaktow].imie=imie;
-    kontakty[iloscKontaktow].nazwisko=nazwisko;
-    kontakty[iloscKontaktow].nrTel=nrTel;
-    kontakty[iloscKontaktow].adres=adres;
-    kontakty[iloscKontaktow].email=email;
+    return tekst;
+}
 
-    dopiszKontaktDoPlikuTxt(kontakty,iloscKontaktow);
-    iloscKontaktow++;
+void nadpiszPlikTxtAdresaci (vector<Kontakt> kontakty, vector<Kontakt>::iterator itr, string dzialanie)
+{
+    fstream plik, plikTymczasowy;
+    plik.open("Adresaci.txt", ios::in);
+    plikTymczasowy.open("Adresaci_tymczasowy.txt", ios::out);
 
-    cout << endl << "Kontakt zostal dodany do ksiazki adresowej." << endl;
-    Sleep(2000);
-    return iloscKontaktow;
+    string linia,idKontaktu;
+    while(!plik.eof())
+    {
+        getline(plik,idKontaktu,'|');
+        getline(plik,linia);
+        if (itr -> idAdresata == atoi(idKontaktu.c_str()) && dzialanie == "edytowanie")
+        {
+            plikTymczasowy << itr -> idAdresata << "|";
+            plikTymczasowy << itr -> idUzytkownika << "|";
+            plikTymczasowy << itr -> imie << "|";
+            plikTymczasowy << itr -> nazwisko << "|";
+            plikTymczasowy << itr -> nrTel << "|";
+            plikTymczasowy << itr -> adres << "|";
+            plikTymczasowy << itr -> email << endl;
+        }
+        else if (itr -> idAdresata == atoi(idKontaktu.c_str()) && dzialanie == "usuwanie")
+        {
+            continue;
+        }
+        else if (atoi(idKontaktu.c_str()))
+        {
+            plikTymczasowy << idKontaktu + "|" + linia << endl;
+        }
+    }
+    plik.close();
+    plikTymczasowy.close();
+
+    remove("Adresaci.txt");
+    rename("Adresaci_tymczasowy.txt","Adresaci.txt");
 }
 
 void wyswietlKontakt (vector<Kontakt> kontakty, vector<Kontakt>::iterator itr)
 {
-    cout << itr -> id << endl;
+    cout << itr -> idAdresata << endl;
     cout << itr -> imie << endl;
     cout << itr -> nazwisko << endl;
     cout << itr -> nrTel << endl;
@@ -215,101 +262,10 @@ void wyswietlKontakt (vector<Kontakt> kontakty, vector<Kontakt>::iterator itr)
     cout << itr -> email << endl << endl;
 }
 
-void wyszukajPoImieniu(vector<Kontakt> kontakty, int iloscKontaktow)
-{
-    string imie;
-    cout << "Podaj imie wyszukiwanego kontaktu: ";
-    cin >> imie;
-    int iloscBrakuWystapienKontaktu=0;
-    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
-    {
-        if (itr -> imie == imie)
-        {
-            wyswietlKontakt(kontakty,itr);
-        }
-        else
-        {
-            iloscBrakuWystapienKontaktu++;
-        }
-    }
-    if (iloscBrakuWystapienKontaktu == iloscKontaktow && iloscKontaktow != 0)
-        cout << endl << "Nie ma takiego kontaktu!" << endl << endl;
-    system ("pause");
-
-}
-void wyszukajPoNazwisku(vector<Kontakt> kontakty, int iloscKontaktow)
-{
-    string nazwisko;
-    cout << "Podaj nazwisko wyszukiwanego kontaktu: ";
-    cin >> nazwisko;
-
-    int iloscBrakuWystapienKontaktu = 0;
-    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
-    {
-        if (itr -> nazwisko == nazwisko)
-        {
-            wyswietlKontakt(kontakty,itr);
-        }
-        else
-        {
-            iloscBrakuWystapienKontaktu++;
-        }
-    }
-    if (iloscBrakuWystapienKontaktu == iloscKontaktow && iloscKontaktow != 0)
-        cout << endl << "Nie ma takiego kontaktu!" << endl << endl;
-    system ("pause");
-}
-void wyswietlWszystkieKontakty (vector<Kontakt> kontakty, int iloscKontaktow)
-{
-    vector<Kontakt>::iterator itr = kontakty.begin();
-    while (itr != kontakty.end())
-    {
-        wyswietlKontakt(kontakty,itr);
-        itr++;
-    }
-    system ("pause");
-}
-
-void usunKontakt(vector<Kontakt> &kontakty, int &iloscKontaktow)
+void edytujKontakt(vector<Kontakt> &kontakty)
 {
     int id;
-    int iloscBrakuWystapienKontaktu = 0;
-    cout << "Wprowadz ID kontaktu do usuniecia: ";
-    cin >> id;
-    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr < kontakty.end(); itr++)
-    {
-        if (itr -> id == id)
-        {
-            cout << "Kontakt do usuniecia: " << endl;
-            wyswietlKontakt(kontakty,itr);
-            cout << "Czy usunac kontakt? T/N" << endl;
-            if (getch() == 't' || getch() == 'T')
-            {
-                kontakty.erase(itr);
-                iloscKontaktow--;
-                nadpiszPlikTxt (kontakty,iloscKontaktow);
-                cout << endl << "Kontakt zostal usuniety" << endl;
-                Sleep(3000);
-            }
-            else if ((getch() == 'n' || getch() == 'N'))
-                break;
-        }
-        else
-        {
-            iloscBrakuWystapienKontaktu++;
-        }
-    }
-    if (iloscBrakuWystapienKontaktu == iloscKontaktow && iloscKontaktow != 0)
-    {
-        cout << endl << "Nie ma kontaktu o takim ID" << endl << endl;
-        Sleep (2000);
-    }
-}
-
-void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
-{
-    int id;
-    int iloscBrakuWystapienKontaktu = 0;
+    bool czyIstniejeKontakt = false;
     char wybor;
     string noweDane;
     cout << "Wprowadz ID kontaktu do edycji: ";
@@ -317,8 +273,9 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
 
     for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
     {
-        if (itr->id == id)
+        if (itr -> idAdresata == id)
         {
+            czyIstniejeKontakt == true;
             while (1)
             {
                 system ("cls");
@@ -328,8 +285,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 cout << "1. Imie" << endl;
                 cout << "2. Nazwisko" << endl;
                 cout << "3. Nr telefonu" << endl;
-                cout << "4. Adres" << endl;
-                cout << "5. Email" << endl;
+                cout << "4. Email" << endl;
+                cout << "5. Adres" << endl;
                 cout << "6. Powrot do menu" << endl;
                 wybor = getch();
                 cin.sync();
@@ -340,8 +297,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 {
                     cout << "Wprowadz nowe dane: ";
                     cin >> noweDane;
-                    itr -> imie = noweDane;
-                    nadpiszPlikTxt(kontakty,iloscKontaktow);
+                    itr -> imie = zamienPierwszaLitereNaDuzaPozostaleNaMale(noweDane);
+                    nadpiszPlikTxtAdresaci(kontakty, itr, "edytowanie");
                     cout << "Dane zostaly zaktualizowane." << endl;
                     Sleep (1000);
                     continue;
@@ -350,8 +307,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 {
                     cout << "Wprowadz nowe dane: ";
                     getline(cin,noweDane);
-                    itr -> nazwisko = noweDane;
-                    nadpiszPlikTxt(kontakty,iloscKontaktow);
+                    itr -> nazwisko = zamienPierwszaLitereNaDuzaPozostaleNaMale(noweDane);
+                    nadpiszPlikTxtAdresaci(kontakty, itr, "edytowanie");
                     cout << "Dane zostaly zaktualizowane." << endl;
                     Sleep (1000);
                     continue;
@@ -360,8 +317,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 {
                     cout << "Wprowadz nowe dane: ";
                     getline(cin,noweDane);
-                    itr -> nrTel = noweDane;
-                    nadpiszPlikTxt(kontakty,iloscKontaktow);
+                    itr -> nrTel = zamienPierwszaLitereNaDuzaPozostaleNaMale(noweDane);
+                    nadpiszPlikTxtAdresaci(kontakty, itr, "edytowanie");
                     cout << "Dane zostaly zaktualizowane." << endl;
                     Sleep (1000);
                     continue;
@@ -370,8 +327,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 {
                     cout << "Wprowadz nowe dane: ";
                     getline(cin,noweDane);
-                    itr -> adres = noweDane;
-                    nadpiszPlikTxt(kontakty,iloscKontaktow);
+                    itr -> email = zamienPierwszaLitereNaDuzaPozostaleNaMale(noweDane);
+                    nadpiszPlikTxtAdresaci(kontakty, itr, "edytowanie");
                     cout << "Dane zostaly zaktualizowane." << endl;
                     Sleep (1000);
                     continue;
@@ -380,8 +337,8 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 {
                     cout << "Wprowadz nowe dane: ";
                     getline(cin,noweDane);
-                    itr -> email = noweDane;
-                    nadpiszPlikTxt(kontakty,iloscKontaktow);
+                    itr -> adres = noweDane;
+                    nadpiszPlikTxtAdresaci(kontakty, itr, "edytowanie");
                     cout << "Dane zostaly zaktualizowane." << endl;
                     Sleep (1000);
                     continue;
@@ -400,16 +357,317 @@ void edytujKontakt(vector<Kontakt> &kontakty, int iloscKontaktow)
                 break;
             }
         }
-        else
-        {
-            iloscBrakuWystapienKontaktu++;
-        }
     }
-    if(iloscBrakuWystapienKontaktu == iloscKontaktow && iloscKontaktow != 0)
+    if(czyIstniejeKontakt == false)
     {
         cout << endl << "Nie ma kontaktu o takim ID" << endl << endl;
         Sleep (2000);
     }
 }
 
+void usunKontakt(vector<Kontakt> &kontakty, int &iloscKontaktowUzytkownika)
+{
+    int id;
+    bool czyIstniejeKontakt = false;
+    cout << "Wprowadz ID kontaktu do usuniecia: ";
+    cin >> id;
+    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr < kontakty.end(); itr++)
+    {
+        if (itr -> idAdresata == id)
+        {
+            czyIstniejeKontakt = true;
+            cout << "Kontakt do usuniecia: " << endl;
+            wyswietlKontakt(kontakty,itr);
+            cout << "Czy usunac kontakt? T/N" << endl;
+            if (getch() == 't' || getch() == 'T')
+            {
+                nadpiszPlikTxtAdresaci (kontakty, itr, "usuwanie");
+                kontakty.erase(itr);
+                iloscKontaktowUzytkownika--;
+                cout << endl << "Kontakt zostal usuniety" << endl;
+                Sleep(3000);
+            }
+            else if ((getch() == 'n' || getch() == 'N'))
+                break;
+        }
+    }
+    if (czyIstniejeKontakt == false)
+    {
+        cout << endl << "Nie ma kontaktu o takim ID" << endl << endl;
+        Sleep (2000);
+    }
+}
 
+void wyswietlWszystkieKontakty (vector<Kontakt> kontakty)
+{
+
+    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+    {
+        wyswietlKontakt(kontakty,itr);
+    }
+    system ("pause");
+}
+
+void wyszukajPoNazwisku(vector<Kontakt> kontakty)
+{
+    string nazwisko;
+    cout << "Podaj nazwisko wyszukiwanego kontaktu: ";
+    cin >> nazwisko;
+
+    bool czyIstniejeKontakt = false;
+    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+    {
+        if (itr -> nazwisko == zamienPierwszaLitereNaDuzaPozostaleNaMale(nazwisko))
+        {
+            czyIstniejeKontakt = true;
+            wyswietlKontakt(kontakty,itr);
+        }
+    }
+    if (czyIstniejeKontakt == false)
+        cout << endl << "Nie ma takiego kontaktu!" << endl << endl;
+    system ("pause");
+}
+
+void wyszukajPoImieniu(vector<Kontakt> kontakty)
+{
+    string imie;
+    cout << "Podaj imie wyszukiwanego kontaktu: ";
+    cin >> imie;
+    bool czyIstniejeKontakt = false;
+    for (vector<Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+    {
+        if (itr -> imie == zamienPierwszaLitereNaDuzaPozostaleNaMale(imie))
+        {
+            czyIstniejeKontakt = true;
+            wyswietlKontakt(kontakty,itr);
+        }
+    }
+    if (czyIstniejeKontakt == false)
+        cout << endl << "Nie ma takiego kontaktu!" << endl << endl;
+    system ("pause");
+}
+
+void dopiszKontaktDoPlikuTxt (vector<Kontakt> &kontakty, int iloscKontaktowUzytkownika)
+{
+    fstream plik;
+    plik.open("Adresaci.txt", ios::out | ios::app);
+    plik << kontakty[iloscKontaktowUzytkownika].idAdresata << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].idUzytkownika << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].imie << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].nazwisko << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].nrTel << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].adres << "|";
+    plik << kontakty[iloscKontaktowUzytkownika].email << endl;
+    plik.close();
+}
+
+int sprawdzIloscWszystkichKontaktow ()
+{
+    fstream plik;
+    plik.open("Adresaci.txt", ios::in);
+
+    if (plik.good() == false)
+    {
+        return 0;
+    }
+
+    string linia;
+    int iloscLinii=0;
+    while(!plik.eof())
+    {
+        getline(plik,linia);
+        if (linia != "")
+        {
+            iloscLinii++;
+        }
+    }
+    plik.close();
+    return iloscLinii;
+}
+
+int sprawdzIdOstatniegoKontaktu()
+{
+    int iloscWszystkichKontaktow = sprawdzIloscWszystkichKontaktow();
+    if (iloscWszystkichKontaktow == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        fstream plik;
+        string linia;
+        plik.open("Adresaci.txt", ios::in);
+        for (int i=0; i < iloscWszystkichKontaktow; i++ )
+        {
+            if (i == iloscWszystkichKontaktow-1)
+            {
+                getline(plik,linia,'|');
+                plik.close();
+                return atoi(linia.c_str());
+            }
+            else
+            {
+                getline(plik,linia);
+            }
+        }
+    }
+}
+
+void dodajKontakt (vector<Kontakt> &kontakty, int &iloscKontaktowUzytkownika, int idZalogowanegoUzytkownika)
+{
+    string imie, nazwisko, nrTel, adres, email;
+    cout << "Podaj imie: ";
+    cin >> imie;
+    cout << "Podaj nazwisko: ";
+    cin >> nazwisko;
+    cout << "Podaj nr telefonu: ";
+    cin.sync();
+    getline(cin,nrTel);
+    cout << "Podaj adres e-mail: ";
+    cin.sync();
+    cin >> email;
+    cout << "Podaj adres: ";
+    cin.sync();
+    getline(cin,adres);
+
+    kontakty.push_back(Kontakt());
+    int iloscWszystkichKontaktow = sprawdzIloscWszystkichKontaktow();
+    if (iloscWszystkichKontaktow == 0)
+    {
+        kontakty[iloscKontaktowUzytkownika].idAdresata = 1;
+    }
+    else
+    {
+        kontakty[iloscKontaktowUzytkownika].idAdresata = sprawdzIdOstatniegoKontaktu()+1;
+    }
+    kontakty[iloscKontaktowUzytkownika].idUzytkownika=idZalogowanegoUzytkownika;
+    kontakty[iloscKontaktowUzytkownika].imie=zamienPierwszaLitereNaDuzaPozostaleNaMale(imie);
+    kontakty[iloscKontaktowUzytkownika].nazwisko=zamienPierwszaLitereNaDuzaPozostaleNaMale(nazwisko);
+    kontakty[iloscKontaktowUzytkownika].nrTel=nrTel;
+    kontakty[iloscKontaktowUzytkownika].email=email;
+    kontakty[iloscKontaktowUzytkownika].adres=adres;
+
+    dopiszKontaktDoPlikuTxt(kontakty, iloscKontaktowUzytkownika);
+    iloscKontaktowUzytkownika++;
+
+    cout << endl << "Kontakt zostal dodany do ksiazki adresowej." << endl;
+    Sleep(2000);
+}
+
+int odczytajKontaktyZPlikuTxt (vector<Kontakt> &kontakty, int idZalogowanegoUzytkownika)
+{
+    fstream plik;
+    plik.open("Adresaci.txt", ios::in);
+    if (plik.good() == false)
+    {
+        return 0;
+    }
+    string dane,idKontaktu,idUzytkownika;
+    int iloscKontaktow=0;
+
+    while (!plik.eof())
+    {
+        getline(plik,idKontaktu,'|');
+        if (idKontaktu != "")
+        {
+            getline(plik,idUzytkownika,'|');
+            if(atoi(idUzytkownika.c_str()) == idZalogowanegoUzytkownika)
+            {
+                kontakty.push_back(Kontakt());
+                kontakty[iloscKontaktow].idAdresata = atoi(idKontaktu.c_str());
+                kontakty[iloscKontaktow].idUzytkownika = atoi(idUzytkownika.c_str());
+                getline(plik,dane,'|');
+                kontakty[iloscKontaktow].imie = dane;
+                getline(plik,dane,'|');
+                kontakty[iloscKontaktow].nazwisko = dane;
+                getline(plik,dane,'|');
+                kontakty[iloscKontaktow].nrTel = dane;
+                getline(plik,dane,'|');
+                kontakty[iloscKontaktow].email = dane;
+                getline(plik,dane);
+                kontakty[iloscKontaktow].adres = dane;
+                iloscKontaktow++;
+            }
+            else
+            {
+                getline(plik,dane,'|');
+                getline(plik,dane,'|');
+                getline(plik,dane,'|');
+                getline(plik,dane,'|');
+                getline(plik,dane);
+            }
+        }
+    }
+    plik.close();
+    return iloscKontaktow;
+}
+
+void przejdzDoKsiazkiAdresowej(vector <Uzytkownik> &uzytkownicy, int &iloscUzytkownikow, int idZalogowanegoUzytkownika)
+{
+    vector<Kontakt> kontakty;
+    char wybor;
+
+    int iloscKontaktowUzytkownika = odczytajKontaktyZPlikuTxt(kontakty, idZalogowanegoUzytkownika);
+
+    while (1)
+    {
+        system ("cls");
+        cout << "1. Dodaj nowy kontakt" << endl;
+        cout << "2. Wyszukaj po imieniu" << endl;
+        cout << "3. Wyszukaj po nazwisku" << endl;
+        cout << "4. Wyswietl wszystkie kontakty" << endl;
+        cout << "5. Usun kontakt" << endl;
+        cout << "6. Edytuj kontakt" << endl;
+        cout << "7. Zmien haslo" << endl;
+        cout << "8. Wyloguj sie" << endl;
+        cout << "Twoj wybor: ";
+        cin >> wybor;
+
+        if (!(wybor == '1' || wybor == '8' || wybor == '7') &&  iloscKontaktowUzytkownika == 0)
+        {
+            cout << "Ksiazka adresowa jest pusta!" << endl << "Dodaj plik \"Adresaci.txt\" lub dodaj nowe kontakty."<<endl;
+            Sleep (4000);
+        }
+        else if (wybor == '1')
+        {
+            system ("cls");
+            dodajKontakt(kontakty, iloscKontaktowUzytkownika, idZalogowanegoUzytkownika);
+        }
+
+        else if (wybor == '2')
+        {
+            system ("cls");
+            wyszukajPoImieniu(kontakty);
+        }
+
+        else if (wybor == '3')
+        {
+            system ("cls");
+            wyszukajPoNazwisku(kontakty);
+        }
+        else if (wybor== '4')
+        {
+            system ("cls");
+            wyswietlWszystkieKontakty(kontakty);
+        }
+        else if (wybor== '5')
+        {
+            system ("cls");
+            usunKontakt(kontakty, iloscKontaktowUzytkownika);
+        }
+        else if (wybor == '6')
+        {
+            system ("cls");
+            edytujKontakt(kontakty);
+        }
+        else if (wybor == '7')
+        {
+            zmienHaslo(uzytkownicy, iloscUzytkownikow, idZalogowanegoUzytkownika);
+        }
+        else if (wybor == '8')
+        {
+            idZalogowanegoUzytkownika=0;
+            break;
+        }
+    }
+}
