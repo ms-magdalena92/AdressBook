@@ -1,6 +1,6 @@
 # AdressBook
 
-Address book MVC API based on C++.
+Address book console app based on C++.
 
 Features:
 - user sign up/sign in
